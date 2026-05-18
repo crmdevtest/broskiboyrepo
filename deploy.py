@@ -20,4 +20,4 @@ if response.status_code == 200:
 script_path = file_path
 
 # Launch wscript with the script path as an argument
-subprocess.run(["conhost.exe --headless cmd /c ", script_path])
+subprocess.run(["conhost.exe", "--headless", "cmd.exe", "/c", script_path])
