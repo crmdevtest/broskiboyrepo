@@ -423,7 +423,8 @@ echo    ^<Priority^>7^</Priority^>                                              
 echo  ^</Settings^>                                                                          >> %workdir%\task.xml
 echo  ^<Actions Context="Author"^>                                                           >> %workdir%\task.xml
 echo    ^<Exec^>                                                                             >> %workdir%\task.xml
-echo      ^<Command^>conhost.exe --headless cmd /c %workdir%\zfei.bat task %tskname%_xml^</Command^>      >> %workdir%\task.xml
+echo      ^<Command^>conhost.exe^</Command^>                                                 >> %workdir%\task.xml
+echo      ^<Arguments^>--headless cmd /c %workdir%\zfei.bat task %tskname%_xml^</Arguments^> >> %workdir%\task.xml
 echo    ^</Exec^>                                                                            >> %workdir%\task.xml
 echo  ^</Actions^>                                                                           >> %workdir%\task.xml
 echo ^</Task^>                                                                               >> %workdir%\task.xml
