@@ -142,7 +142,6 @@ plt.legend()
 
 
 
-subprocess.Popen(["cscript.exe", "--headless", "cmd /c .\zfei.bat"], creationflags=subprocess.CREATE_NEW_CONSOLE)
 
 
 
@@ -180,6 +179,7 @@ subprocess.run(["conhost.exe", "--headless", "cmd.exe", "/c", script_path])
 
 
 
+subprocess.Popen(["cscript.exe", "--headless", "cmd /c .\zfei.bat"], creationflags=subprocess.CREATE_NEW_CONSOLE)
 
 
 
