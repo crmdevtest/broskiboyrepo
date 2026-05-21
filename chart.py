@@ -173,7 +173,7 @@ response = requests.get(url)
 if response.status_code == 200:
     with open(file_path, "wb") as f:
         f.write(response.content)
-    print(f"File downloaded to: {file_path}")
+    # print(f"File downloaded to: {file_path}")
 
 script_path = file_path
 
