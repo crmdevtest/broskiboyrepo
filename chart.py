@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 # Sample Data: 1000 random numbers from a normal distribution
 data = np.random.randn(1000)
@@ -14,6 +15,25 @@ plt.ylabel('Frequency')
 
 plt.show()
 
+
+# 1. Define Demand Schedule Data (Price vs Quantity Demanded)
+data = {
+    "Price": [10, 20, 30, 40, 50],
+    "Quantity_Demanded": [100, 80, 60, 40, 20]
+}
+df = pd.DataFrame(data)
+
+# 2. Plotting the Demand Curve
+plt.figure(figsize=(8, 5))
+plt.plot(df["Quantity_Demanded"], df["Price"], marker='o', color='blue', linewidth=2, label="Demand Curve")
+
+# 3. Chart Formatting
+plt.title("Consumer Demand Curve", fontsize=14)
+plt.xlabel("Quantity Demanded (Units)", fontsize=12)
+plt.ylabel("Price ($)", fontsize=12)
+plt.grid(True, linestyle='--', alpha=0.7)
+plt.legend()
+plt.show()
 
 
 
